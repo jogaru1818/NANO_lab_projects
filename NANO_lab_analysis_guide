@@ -1,0 +1,104 @@
+NANO lab analysis pipelines logs
+
+1. Set up
+
+Linux installation
+
+The first step was to switch the operating system of my workstation (Bonelly) from Windows to Linux. Download the Ubuntu 26.04 LTS version and put it into a bootable, formated USB (provided by Santiago).
+
+After checking that no data was stored locally on Bonelly, we proceeded with the installation of Ubuntu in the machine. After initiating the computer with the USB connected, entered the boot menu and follow the stpes for complating the Linux installation
+
+Install FreeSurfer
+
+Copied the FreeSurfer license associated with my FreeSurfer account 
+
+Install matlab
+
+
+
+Copy MRI/MEG data from SCAI server
+
+Connect to the SCAI server to verify the files are there     ssh jgallego@rcg-imgtech-2.research.sfu.ca
+Copy MRI files from several subjects to NANO lab workstation     for sub in sub-XX sub-XX; do   scp -r jgallego@rcg-imgtech-2.research.sfu.ca:/data/storage/projects/HIMPAS/mri/raw_sorted/$sub /home/jonathan/Documents/HIM_study/MRI/; done
+Copy MEG files from several subjects to NANO lab workstation     for sub in sub-XX sub-XX; do   scp -r jgallego@rcg-imgtech-2.research.sfu.ca:/data/storage/projects/HIMPAS/meg/raw/$sub /home/jonathan/Documents/HIM_study/MEG/; done
+
+Make sure the subject folder name follows the ID convention of the study before starting image processing
+
+
+
+
+
+2. Run FreeSurfer
+
+
+
+
+
+
+
+
+
+
+3. Run resting state preprocessing and source reconstruction pipeline
+
+Activate conda environment for mne
+anaconda3
+conda activate mne
+Run corregistration script
+python /home/jonathan/mne_nanotools/corregistration.py --root_dir /home/jonathan/Documents/HIM_study/ --subject_id sub_HIM003 --session ses-20260603 --subjects_dir /home/jonathan/Documents/HIM_study/MRI/freesurfer/ --overwrite
+
+Inspect coregistration afterwards
+open python, then run
+import mne
+define variable with the transformation matrix
+trans=mne.read_trans("/home/jonathan/Documents/HIM_study/MEG/sub_XX/ses-XX/sub_XX_ses-XX-corr_trans.fif")
+define variable with the ra fif data (to access fiducials, etc)
+raw=mne.io.read_raw("/home/jonathan/Documents/HIM_study/MEG/sub_HIM004/ses-20260610/sub_HIM004_rest1_raw.fif")
+
+mne.viz.plot_alignment(raw.info,trans=trans,subject="sub_HIM004", ...     subjects_dir="/home/jonathan/Documents/HIM_study/MRI/freesurfer", ...     surfaces="head-dense", ...     show_axes=True, ...     dig=True, ...     eeg=[], ...     meg={"helmet": ...     0.1, "sensors": 0.1, "ref": 1}, ...     coord_frame="meg", ...     mri_fiducials=True, ... )
+
+Main command for running the resting state pipeline
+python /home/jonathan/mne_nanotools/generic_taskfree.py --root_dir /home/jonathan/Documents/HIM_study --subject_id sub_HIM004 --session ses-20260610 --task rest1 --prefer raw --tsss_dir /home/jonathan/mne_nanotools/tsss_params/2023 --eSSS 41-45,50-53 --l_freq .5 --h_freq 200 --overwrite
+
+
+4. Run task preprocessing and analysis pipeline (MSIT)
+
+
+
+
+
+5. PREVENT-AD connectivity data
+each subjetcs connectivity matrices (Schaefer200) is stored under
+/project/def-awiesman/data-sets/Prevent-AD_processed/derivatives/sub-CONPXXXX/ses-XX/beamformer/schaefer2018_200parcels_17networks_parc
+PREVENTAD/Documents
+Use neurochem similarity matrix from Santi scratch (most updated)
+neurochems partial correlations pkl file is accounting for age
+null_model_hung_index.csv (needed for running the rotations for the spin tests)
+
+
+
+Create spreadsheet with relevant demographics and behaviour
+Need to generate a master spredsheet with all the relevnat variables for running the LME analysis pipeline with the connectivity data
+ID, ROI_pair, neurochemsim, age, sex, education, apoe, amyloid * tau average, cognitive scores
+columns ID, age, sex, education, apoe, cognitive scores are going the be repeated n times for the number of rows for the vectorized neurochem and FC matrices (lower or upper triangle)
+Scripts for running the LME analysis including the spin tests are saved in Santi’s Github
+https://github.com/ISaant/Chemoarchitectural_influences_connectome
+https://github.com/ISaant/Chemoarchitectural_influences_connectome
+
+
+
+
+
+Useful commands glossary
+
+anaconda3 --- run anaconda
+conda activate XX --- activate XX environment in anaconda (ex activate mne environment for running MEG analysis pipelines)
+copy several folders --- for sub in sub-XX sub-XX; do   scp -r jgallego@rcg-imgtech-2.research.sfu.ca:/data/storage/projects/HIMPAS/meg/raw/$sub /home/jonathan/Documents/HIM_study/MEG/; done
+FIR login credentials ssh jogaru18@alliancecan.ca Zimbabwe18@
+history | grep XX --- (search for previous commands where XX was used)
+recon-all -i sub_XX_T1.nii.gz -s sub_XX -all --- Run standard Freesurfer reconstructions using recon-all
+
+
+
+
+
