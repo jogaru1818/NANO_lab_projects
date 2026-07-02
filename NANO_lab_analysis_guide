@@ -93,10 +93,19 @@ Useful commands glossary
 
 anaconda3 --- run anaconda
 conda activate XX --- activate XX environment in anaconda (ex activate mne environment for running MEG analysis pipelines)
-copy several folders --- for sub in sub-XX sub-XX; do   scp -r jgallego@rcg-imgtech-2.research.sfu.ca:/data/storage/projects/HIMPAS/meg/raw/$sub /home/jonathan/Documents/HIM_study/MEG/; done
-FIR login credentials ssh jogaru18@alliancecan.ca Zimbabwe18@
-history | grep XX --- (search for previous commands where XX was used)
+for sub in sub-XX sub-XX; do   scp -r jgallego@rcg-imgtech-2.research.sfu.ca:/data/storage/projects/HIMPAS/meg/raw/$sub /home/jonathan/Documents/HIM_study/MEG/; done --- copy several folders
+history | grep XX --- Search for previous commands where XX was used)
 recon-all -i sub_XX_T1.nii.gz -s sub_XX -all --- Run standard Freesurfer reconstructions using recon-all
+ssh jonathan@172.16.49.136  --- NANO lab workstation login credentials (password Zimbabwe18@)
+ssh jgallego@rcg-imgtech-2.research.sfu.ca --- SCAI server login credentials (password Perriki18@)
+ssh jogaru18@alliancecan.ca Zimbabwe18@ --- FIR login credentials (password Zimbabwe18@)
+tail -40 ~/freesurfer_subjects/sub_HIM005/scripts/recon-all.log --- check whether FreeSurfer is running or whether it finished successfully
+tmux attach -t XX --- Run from nano lab terminal to create a virtual terminal (XX). Useful for running long processes remotely so that it's not killed when closing terminal
+
+
+Scripts for data processing
+run_freesurfer.sh --- Script used to run FreeSurfer across all participants in a given study folder. Script finds all subjects, skips the one that already have
+FreeSurfer reconstruction and runs the one who don't
 
 
 
