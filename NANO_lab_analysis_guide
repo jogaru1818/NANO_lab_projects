@@ -10,7 +10,8 @@ After checking that no data was stored locally on Bonelly, we proceeded with the
 
 Install FreeSurfer
 
-Copied the FreeSurfer license associated with my FreeSurfer account 
+Copied the FreeSurfer license associated with my FreeSurfer account.
+Set up the FreeSurfer environment when starting bash (add commands in the ~/.bashrc file)
 
 Install matlab
 
@@ -18,9 +19,9 @@ Install matlab
 
 Copy MRI/MEG data from SCAI server
 
-Connect to the SCAI server to verify the files are there     ssh jgallego@rcg-imgtech-2.research.sfu.ca
-Copy MRI files from several subjects to NANO lab workstation     for sub in sub-XX sub-XX; do   scp -r jgallego@rcg-imgtech-2.research.sfu.ca:/data/storage/projects/HIMPAS/mri/raw_sorted/$sub /home/jonathan/Documents/HIM_study/MRI/; done
-Copy MEG files from several subjects to NANO lab workstation     for sub in sub-XX sub-XX; do   scp -r jgallego@rcg-imgtech-2.research.sfu.ca:/data/storage/projects/HIMPAS/meg/raw/$sub /home/jonathan/Documents/HIM_study/MEG/; done
+Connect to the SCAI server to verify the files are there >>> ssh jgallego@rcg-imgtech-2.research.sfu.ca
+Copy MRI files from several subjects to NANO lab workstation >>> for sub in sub-XX sub-XX; do   scp -r jgallego@rcg-imgtech-2.research.sfu.ca:/data/storage/projects/HIMPAS/mri/raw_sorted/$sub /home/jonathan/Documents/HIM_study/MRI/; done
+Copy MEG files from several subjects to NANO lab workstation >>> for sub in sub-XX sub-XX; do   scp -r jgallego@rcg-imgtech-2.research.sfu.ca:/data/storage/projects/HIMPAS/meg/raw/$sub /home/jonathan/Documents/HIM_study/MEG/; done
 
 Make sure the subject folder name follows the ID convention of the study before starting image processing
 
@@ -29,7 +30,11 @@ Make sure the subject folder name follows the ID convention of the study before 
 
 
 2. Run FreeSurfer
-
+2.1 Copy files from the SCAI server
+Copy the folders from specific subjects (when you have few participants to copy)
+scp -r jgallego@rcg-imgtech-2.research.sfu.ca:/data/storage/projects/HIMPAS/mri/raw_sorted/{sub-HIM001,sub-HIM002,sub-HIM003} /home/jonathan/Documents/HIM_study/mri/
+Copy the folder from all subjects in a specific study (ideal for large MRI datasets)
+rsync -avP --include='sub-HIM*/' --include='**' --exclude='*' jgallego@rcg-imgtech-2.research.sfu.ca:/data/storage/projects/HIMPAS/mri/raw_sorted/ /home/jonathan/Documents/HIM_study/mri/
 
 
 
@@ -68,7 +73,7 @@ python /home/jonathan/mne_nanotools/generic_taskfree.py --root_dir /home/jonatha
 
 
 5. PREVENT-AD connectivity data
-each subjetcs connectivity matrices (Schaefer200) is stored under
+each subject's connectivity matrices (Schaefer200) is stored under
 /project/def-awiesman/data-sets/Prevent-AD_processed/derivatives/sub-CONPXXXX/ses-XX/beamformer/schaefer2018_200parcels_17networks_parc
 PREVENTAD/Documents
 Use neurochem similarity matrix from Santi scratch (most updated)
@@ -78,10 +83,10 @@ null_model_hung_index.csv (needed for running the rotations for the spin tests)
 
 
 Create spreadsheet with relevant demographics and behaviour
-Need to generate a master spredsheet with all the relevnat variables for running the LME analysis pipeline with the connectivity data
+Need to generate a master spreadsheet with all the relevant variables for running the LME analysis pipeline with the connectivity data
 ID, ROI_pair, neurochemsim, age, sex, education, apoe, amyloid * tau average, cognitive scores
-columns ID, age, sex, education, apoe, cognitive scores are going the be repeated n times for the number of rows for the vectorized neurochem and FC matrices (lower or upper triangle)
-Scripts for running the LME analysis including the spin tests are saved in Santi’s Github
+columns ID, age, sex, education, apoe, cognitive scores are going to be repeated n times for the number of rows for the vectorized neurochem and FC matrices (lower or upper triangle)
+Scripts for running the LME analysis, including the spin tests, are saved in Santi’s GitHub
 https://github.com/ISaant/Chemoarchitectural_influences_connectome
 https://github.com/ISaant/Chemoarchitectural_influences_connectome
 
@@ -91,21 +96,30 @@ https://github.com/ISaant/Chemoarchitectural_influences_connectome
 
 Useful commands glossary
 
-anaconda3 --- run anaconda
-conda activate XX --- activate XX environment in anaconda (ex activate mne environment for running MEG analysis pipelines)
-for sub in sub-XX sub-XX; do   scp -r jgallego@rcg-imgtech-2.research.sfu.ca:/data/storage/projects/HIMPAS/meg/raw/$sub /home/jonathan/Documents/HIM_study/MEG/; done --- copy several folders
-history | grep XX --- Search for previous commands where XX was used)
-recon-all -i sub_XX_T1.nii.gz -s sub_XX -all --- Run standard Freesurfer reconstructions using recon-all
-ssh jonathan@172.16.49.136  --- NANO lab workstation login credentials (password Zimbabwe18@)
-ssh jgallego@rcg-imgtech-2.research.sfu.ca --- SCAI server login credentials (password Perriki18@)
-ssh jogaru18@alliancecan.ca Zimbabwe18@ --- FIR login credentials (password Zimbabwe18@)
-tail -40 ~/freesurfer_subjects/sub_HIM005/scripts/recon-all.log --- check whether FreeSurfer is running or whether it finished successfully
-tmux attach -t XX --- Run from nano lab terminal to create a virtual terminal (XX). Useful for running long processes remotely so that it's not killed when closing terminal
+anaconda3 >>> run anaconda
+chmod +x ~/Documents/run_freesurfer.sh >>> make a new script executable
+conda activate XX >>> activate XX environment in anaconda (ex activate mne environment for running MEG analysis pipelines)
+curl -O https://repo.anaconda.com/archive/Anaconda3-2025.12-2-Linux-x86_64.sh >>> Install anaconda
+dcm2niix -z y -f sub_XX_T1 -o ~/Documents/HIM_study/MRI/sub_XX/ses-XX/nifti ~/Documents/HIM_study/MRI/sub_XX/ses-XX/T1W_3D_TFE_SENSE2-201/ >>> Convert DICOM to nifti (change subject name, path, and sequence name)
+for sub in sub-XX sub-XX; do   scp -r jgallego@rcg-imgtech-2.research.sfu.ca:/data/storage/projects/HIMPAS/meg/raw/$sub /home/jonathan/Documents/HIM_study/MEG/; done >>> copy several folders
+for s in sub_XX sub_XX sub_XX; do   echo "== $s ==";   tail -n 2 ~/freesurfer_subjects/$s/scripts/recon-all.log; done >>> Check FreeSurfer logs for all the listed subjects
+git clone https://github.com/rordenlab/dcm2niix.git >>> Clone GitHub repository (Need to change the GitHub url)
+history | grep XX >>> Search for previous commands where XX was used)
+pkill -f "recon-all.*-s XX" >>> Kill FreeSurfer run for folder output called XX
+recon-all -i sub_XX_T1.nii.gz -s sub_XX -all >>> Run standard Freesurfer reconstructions using recon-all
+scp -r jgallego@rcg-imgtech-2.research.sfu.ca:/data/storage/projects/HIMPAS/mri/raw_sorted/sub-XX /home/jonathan/Documents/HIM_study/mri/ >>> Copy data from the ImageTech server
+ssh jonathan@172.16.49.136  >>> NANO lab workstation login credentials (password Zimbabwe18@)
+ssh jgallego@rcg-imgtech-2.research.sfu.ca >>> SCAI server login credentials (password Perriki18@)
+ssh jogaru18@alliancecan.ca Zimbabwe18@ >>> FIR login credentials (password Zimbabwe18@)
+tail -40 ~/freesurfer_subjects/sub_HIM005/scripts/recon-all.log >>> check whether FreeSurfer is running or whether it finished successfully
+tmux attach -t XX >>> Run from nano lab terminal to create a virtual terminal (XX). Useful for running long processes remotely so that it's not killed when closing the terminal
 
 
 Scripts for data processing
-run_freesurfer.sh --- Script used to run FreeSurfer across all participants in a given study folder. Script finds all subjects, skips the one that already have
-FreeSurfer reconstruction and runs the one who don't
+python /home/jonathan/mne_nanotools/corregistration.py --root_dir /home/jonathan/Documents/HIM_study/ --subject_id sub_XX --session ses-XX --subjects_dir /home/jonathan/freesurfer_subjects/ --overwrite >>> Run MEG coregistration script (Need to activate mne conda environment and change subject name, path and sequence name)
+python /home/jonathan/mne_nanotools/generic_taskfree.py --root_dir /home/jonathan/Documents/HIM_study --subject_id sub_XX --session ses-XX --task rest1 --prefer raw --tsss_dir /home/jonathan/mne_nanotools/tsss_params/2023 --eSSS 41-45,50-53 --l_freq .5 --h_freq 200 --overwrite >>> Run main resting-state preprocessing and source reconstruction script (Need to activate mne conda environment and change subject name, path and sequence name)
+run_freesurfer.sh >>> Script used to run FreeSurfer across all participants in a given study folder. Script finds all subjects, skips the ones that already have FreeSurfer reconstruction, and runs the one who don't
+
 
 
 
